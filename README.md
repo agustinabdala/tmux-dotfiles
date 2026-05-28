@@ -1,6 +1,6 @@
 # tmux-dotfiles
 
-Mi config de tmux, pensada para **trabajo remoto vía SSH** y **sesiones paralelas de Claude Code**. Sin keybinds estilo vim; copy/paste con el portapapeles nativo del terminal y soporte de clipboard sobre SSH (OSC52).
+Mi setup de tmux para **trabajo remoto vía SSH** + **sesiones paralelas de Claude Code**, basado en [Oh My Tmux!](https://github.com/gpakosz/.tmux) con mis overrides en `tmux.conf.local`.
 
 ## Instalación en cualquier máquina
 
@@ -8,21 +8,21 @@ Mi config de tmux, pensada para **trabajo remoto vía SSH** y **sesiones paralel
 git clone https://github.com/agustinabdala/tmux-dotfiles.git ~/.dotfiles/tmux
 cd ~/.dotfiles/tmux
 ./bootstrap.sh
+tmux new -s main
 ```
 
-El script instala tmux (si falta), instala TPM, linkea `tmux.conf` a `~/.tmux.conf` (haciendo backup si ya tenías uno) e instala los plugins. Idempotente: corrélo las veces que quieras.
+El script:
+1. Instala tmux si falta.
+2. Clona `gpakosz/.tmux` en `~/.tmux` (o `git pull` si ya estaba).
+3. Linkea `~/.tmux.conf` → `~/.tmux/.tmux.conf`.
+4. Linkea `~/.tmux.conf.local` → mis overrides versionados (este repo).
 
-Si ya estás dentro de tmux después de clonar:
-
-```bash
-tmux source ~/.tmux.conf   # y prefix + I para instalar plugins
-```
+Idempotente — corrélo de nuevo y queda actualizado.
 
 ## Lo esencial
 
 - **Prefix:** `Ctrl + Espacio`
 - **Recargar config:** `prefix + r`
-- **Instalar / actualizar plugins:** `prefix + I` / `prefix + U`
 
 ### Panes y windows
 
@@ -31,57 +31,37 @@ tmux source ~/.tmux.conf   # y prefix + I para instalar plugins
 | Split vertical | `prefix + \|` |
 | Split horizontal | `prefix + -` |
 | Nueva window | `prefix + c` |
-| Moverse entre panes | `Alt + flechas` (sin prefix) o `prefix + flechas` |
-| Redimensionar pane | `prefix + Shift + flechas` |
+| Moverse entre panes | `Alt + flechas` (sin prefix) |
+| Cambiar de window | `Alt + 1..9` (sin prefix) |
 | Zoom pane a pantalla completa | `prefix + z` |
-| Cambiar de window | `Alt + 1..9` |
-| Shell flotante temporal | `prefix + g` |
-| Sesión scratch persistente | `prefix + G` |
+| Cerrar pane | `prefix + x` |
 
 ### Copy / paste
 
-- **Nativo del terminal:** mantené `Shift` mientras seleccionás con el mouse, después `Ctrl+Shift+C` para copiar y `Ctrl+Shift+V` para pegar.
-- **Vía tmux:** seleccioná arrastrando el mouse (sin Shift) — al soltar copia al portapapeles del sistema (OSC52, funciona sobre SSH). Pegar con `prefix + ]`.
+- **Mouse:** arrastrá para seleccionar → al soltar copia al portapapeles del sistema (OSC52).
+- **Línea entera:** triple click sobre la línea.
+- **Sin mouse:** `prefix + [` → flechas → `Space` para empezar selección → `Enter` para copiar.
+- **Pegar dentro de tmux:** `prefix + ]`.
+- **Pegar en apps locales:** `Ctrl+V` o `Ctrl+Shift+V`.
+- **Si OSC52 falla** (terminal no soporta): mantené `Shift` mientras seleccionás con el mouse — eso usa la selección nativa del terminal.
 
-> El clipboard sobre SSH necesita que tu terminal local soporte OSC52. gnome-terminal, Tilix y la mayoría de los modernos lo hacen.
+## ¿Qué es OSC52?
 
-## Plugins incluidos
+Secuencia de escape que tmux emite cuando copiás. Tu **terminal local** (gnome-terminal, Alacritty, Kitty, iTerm2, WezTerm, Windows Terminal) la intercepta y mete el texto en el **portapapeles de tu máquina local**. Resultado: copiás en el server remoto, pegás con `Ctrl+V` en tu navegador local. Sin xclip, sin SSH agent forwarding.
 
-| Plugin | Para qué |
-| --- | --- |
-| tpm | gestor de plugins |
-| tmux-sensible | defaults razonables |
-| tmux-resurrect | guarda/restaura sesiones manualmente |
-| tmux-continuum | autosave de sesiones cada 5 min + restore automático |
-| tmux-yank | copiar al portapapeles del sistema |
-| tmux-suspend | `F12` suspende el tmux local para trabajar con tmux remoto anidado |
-| tmux-current-pane-hostname | muestra `user@host` en el status bar |
-| tmux-prefix-highlight | avisa visualmente cuando el prefix está activo |
-| tmux-notify | `prefix + m` avisa cuando termina un proceso largo |
-| tmux-window-name | nombra las windows según lo que corre |
+## Overrides locales por máquina (sin tocar el repo)
 
-### Plugins opcionales (comentados en `tmux.conf`)
-
-Requieren dependencias extra; descomentalos y agregá las deps en `bootstrap.sh`:
-
-- **tmux-sessionx** — gestor de sesiones con preview (necesita `fzf`, `zoxide`)
-- **tmux-thumbs** — copiar paths/hashes con hints estilo Vimium (necesita `cargo`)
-- **extrakto** — fuzzy extract del scrollback con `prefix + Tab` (necesita `fzf`)
-
-## Overrides por máquina
-
-Para ajustes específicos de un equipo sin tocar el config versionado, creá `~/.tmux.conf.local`. Se carga automáticamente al final. Ejemplo típico en un server:
-
-```bash
-# ~/.tmux.conf.local
-set -g status-right "#[fg=#f38ba8] PROD #[fg=#94e2d5]#(whoami)@#H #[fg=#f9e2af]%H:%M "
-```
+Si querés ajustes específicos de un equipo, editá `tmux.conf.local` (versionado, este repo) o agregá un segundo archivo no versionado y `source-file`-eálo al final.
 
 ## Flujo recomendado (SSH + Claude Code)
 
-1. `ssh server` y abrí una sesión nombrada por proyecto: `tmux new -s rimvision`
-2. Lanzá Claude Code dentro de un pane (queda corriendo en el server).
-3. `prefix + d` para desconectar — Claude sigue trabajando aunque cierres el SSH.
+1. `ssh server` → `tmux new -s rimvision`.
+2. Lanzá Claude Code dentro de un pane.
+3. `prefix + d` desconecta — Claude sigue corriendo en el server.
 4. Más tarde: `ssh server && tmux attach -t rimvision`.
 
-Con `tmux-continuum` activo, incluso si el server se reinicia, al volver a entrar tus sesiones se restauran solas.
+## Volver a empezar / desinstalar
+
+```bash
+rm -rf ~/.tmux ~/.tmux.conf ~/.tmux.conf.local
+```
