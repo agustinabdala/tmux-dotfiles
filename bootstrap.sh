@@ -59,6 +59,34 @@ fi
 ln -sf "$DOTFILES_DIR/tmux.conf.local" "$HOME/.tmux.conf.local"
 ok "~/.tmux.conf.local -> $DOTFILES_DIR/tmux.conf.local"
 
+# 5. Plugins: Oh My Tmux los autoinstala al iniciar tmux.
+#    Disparamos una sesión efímera y esperamos a que terminen los clones.
+info "Instalando plugins (TPM auto-install vía Oh My Tmux)..."
+EPHEMERAL="_bootstrap_$$"
+if tmux new-session -d -s "$EPHEMERAL" -x 200 -y 50 2>/dev/null; then
+  # esperamos hasta 60s a que aparezcan los plugins declarados en tmux.conf.local
+  for i in $(seq 1 30); do
+    sleep 2
+    plugin_count=$(find "$HOME/.tmux/plugins" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l)
+    [ "$plugin_count" -ge 4 ] && break   # tpm + 3 plugins
+  done
+  tmux kill-session -t "$EPHEMERAL" 2>/dev/null || true
+  ok "Plugins listos ($plugin_count en ~/.tmux/plugins)"
+else
+  warn "No pude arrancar tmux efímero; los plugins se instalarán solos al abrir tmux"
+fi
+
+# 6. claude-workspace.sh accesible globalmente
+if [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
+  ln -sf "$DOTFILES_DIR/claude-workspace.sh" "$HOME/.local/bin/claude-workspace"
+  ok "claude-workspace -> ~/.local/bin/claude-workspace"
+  case ":$PATH:" in
+    *:"$HOME/.local/bin":*) ;;
+    *) warn "Agregá ~/.local/bin a tu PATH para usar 'claude-workspace' directo" ;;
+  esac
+fi
+
 echo
 ok "Listo. Abrí tmux con: tmux new -s main"
-echo "   Prefix = Ctrl+Espacio   |   prefix + r recarga la config"
+echo "   Prefix = Ctrl+Espacio   |   prefix + r recarga"
+echo "   Workspace de proyecto:  claude-workspace ~/path/al/proyecto"

@@ -53,6 +53,29 @@ Secuencia de escape que tmux emite cuando copiás. Tu **terminal local** (gnome-
 
 Si querés ajustes específicos de un equipo, editá `tmux.conf.local` (versionado, este repo) o agregá un segundo archivo no versionado y `source-file`-eálo al final.
 
+## Plugins (vía TPM, gestionados por Oh My Tmux)
+
+| Plugin | Para qué |
+| --- | --- |
+| `tmux-resurrect` | Guarda/restaura sesiones manualmente (`prefix + Ctrl-s` / `prefix + Ctrl-r`) |
+| `tmux-continuum` | Autosave cada 5 min + restore automático al arrancar tmux |
+| `tmux-notify` | `prefix + m` monitorea el pane y avisa cuando un proceso termina |
+
+`prefix + I` para instalar, `prefix + u` para actualizar, `prefix + Alt + u` para limpiar.
+
+## Workspace de proyecto
+
+Dos opciones para abrir un layout listo (shell + Claude Code + logs + git):
+
+```bash
+# Script bash, cero dependencias extra:
+claude-workspace ~/proyectos/rimvision
+
+# O declarativo con tmuxp (pipx install tmuxp):
+cp tmuxp.example.yaml ~/.config/tmuxp/rimvision.yaml
+tmuxp load rimvision
+```
+
 ## Flujo recomendado (SSH + Claude Code)
 
 1. `ssh server` → `tmux new -s rimvision`.

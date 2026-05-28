@@ -1,0 +1,27 @@
+# Workspace declarativo para Claude Code, via tmuxp.
+#
+# Instalá tmuxp:  pipx install tmuxp     (o  pip install --user tmuxp)
+# Copiá este archivo a ~/.config/tmuxp/<proyecto>.yaml y editá los paths.
+# Lanzar:  tmuxp load <proyecto>
+#
+# Equivalente declarativo de claude-workspace.sh — usá lo que prefieras.
+
+session_name: rimvision
+start_directory: ~/proyectos/rimvision
+
+windows:
+  - window_name: code
+    layout: main-vertical
+    options:
+      main-pane-width: 60%
+    panes:
+      - shell_command: []                 # editor / shell principal
+      - shell_command:
+          - claude                        # Claude Code
+      - shell_command:
+          - tail -f /tmp/build.log || true   # logs / tests
+
+  - window_name: git
+    panes:
+      - shell_command:
+          - git status
