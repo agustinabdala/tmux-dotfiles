@@ -500,7 +500,7 @@ set -g @tnotify-verbose 'on'
 #
 # # usage: #{disk}, #{disk /home}, ... -> "⛁ 43% 75G" (uso % y libre), ⚠ si >= 90%
 # disk() {
-#   df -hP "${1:-/}" | awk 'NR==2 { u=$5+0; printf "%s⛁ %s %s", (u>=90?"⚠ ":""), $5, $4 }'
+#   df -hP "${1:-/}" | awk 'NR==2 { u=$5+0; printf "%s⛁ %s %s\n", (u>=90?"⚠ ":""), $5, $4 }'
 #   sleep 60                                          # el disco no cambia rápido, refrescar cada minuto alcanza
 # }
 #
