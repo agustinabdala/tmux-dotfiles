@@ -86,6 +86,15 @@ if [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
   esac
 fi
 
+# 7. COLORTERM=truecolor para que Oh My Tmux detecte 24-bit color
+#    (Windows Terminal no lo define, y SSH no lo reenvía al server)
+if [ -f "$HOME/.bashrc" ] && ! grep -q 'COLORTERM=truecolor' "$HOME/.bashrc"; then
+  printf '\n# 24-bit color para tmux (Oh My Tmux lo detecta por COLORTERM)\nexport COLORTERM=truecolor\n' >> "$HOME/.bashrc"
+  ok "COLORTERM=truecolor agregado a ~/.bashrc (abrí una shell nueva)"
+else
+  ok "COLORTERM=truecolor ya configurado"
+fi
+
 echo
 ok "Listo. Abrí tmux con: tmux new -s main"
 echo "   Prefix = Ctrl+Espacio   |   prefix + r recarga"
