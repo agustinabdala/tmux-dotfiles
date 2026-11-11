@@ -82,7 +82,16 @@ if [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
   ok "claude-workspace -> ~/.local/bin/claude-workspace"
   case ":$PATH:" in
     *:"$HOME/.local/bin":*) ;;
-    *) warn "Agregá ~/.local/bin a tu PATH para usar 'claude-workspace' directo" ;;
+    *)
+      if [ -f "$HOME/.bashrc" ] && ! grep -q '\.local/bin' "$HOME/.bashrc"; then
+        printf '\n# binarios de usuario (claude-workspace, pipx, etc.)\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.bashrc"
+        ok "~/.local/bin agregado al PATH en ~/.bashrc (abrí una shell nueva)"
+      elif [ -f "$HOME/.bashrc" ]; then
+        warn "~/.local/bin ya está en ~/.bashrc — abrí una shell nueva para usar 'claude-workspace'"
+      else
+        warn "Agregá ~/.local/bin a tu PATH para usar 'claude-workspace' directo"
+      fi
+      ;;
   esac
 fi
 
